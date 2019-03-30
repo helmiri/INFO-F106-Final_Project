@@ -2,7 +2,7 @@
     File name: config.py
     Author: El Miri Hamza
     ID: 000479603
-    Date: 03/03/2019
+    Date: 07/04/2019
 
     Function:
         - Contains variables shared across partie3.py and main_partie2.py
@@ -32,6 +32,8 @@ class Parameter:
         self.neurons = 40
         self.activation = "Sigmoid"
         self.eps_decrease = 0
+        self.eps_end_value = 0
+        self.sigma = 0
 
         # Game
         self.train = 10000

@@ -1,11 +1,11 @@
 '''
-    File name: partie3.py
+    File name: partie4.py
     Author: El Miri Hamza
     ID: 000479603
-    Date: 03/03/2019
+    Date: 07/04/2019
 
     Function:
-        UI for main_partie2.py
+        UI for main_partie4.py
 '''
 
 import sys
@@ -28,7 +28,7 @@ class Main(QMainWindow):
     def initUI(self):
         self.setWindowTitle('Quoridor: Deluxe Edition')
         self.setFixedWidth(500)
-        self.setFixedHeight(550)
+        self.setFixedHeight(625)
 
         self.options = Options()
 
@@ -106,8 +106,8 @@ class Options(QWidget):
         self.grid = QGridLayout()
 
         # Create items
-        self.strategy = DropDownMenu('Strategy', ['Q-Learning', 'TD-Lambda'])
-        self.activation = DropDownMenu('Activation', ['Sigmoid','ReLu', 'Swish'])
+        self.strategy = DropDownMenu('Strategy', ['Q-Learning', 'Q-Lambda','TD-Lambda'])
+        self.activation = DropDownMenu('Activation', ['Sigmoid','ReLU', 'Swish'])
 
         self.board_size = self.create_box('BoardSize', 'SpinBox', [3, 9], 1)
         self.nbr_walls = self.create_box('Walls', 'SpinBox', [0, 10], 1)
@@ -118,6 +118,8 @@ class Options(QWidget):
         self.alpha = self.create_box('Alpha', 'DoubleSpinBox', [0.00, 1.00], 0.05)
         self.lambda_ = self.create_box('Lambda', 'DoubleSpinBox', [0.00, 1.00], 0.05)
         self.eps_decrease = self.create_box('Decreasing Epsilon', 'DoubleSpinBox', [0, 1], 0.05)
+        self.eps_end_value = self.create_box('Epsilon end value', 'DoubleSpinBox', [0, 1], 0.05)
+        self.sigma = self.create_box('Sigma', 'DoubleSpinBox', [0, 1], 0.01)
         
 
         self.trainAI = Buttons('Train', 'Train AI')
@@ -132,12 +134,12 @@ class Options(QWidget):
 
         labels = ['Strategy:', 'Activation function','Neurons', 'Board Size:', 'Number of walls:',
                   'Number of games to train the AI:', 'Number of games to compare the AI:',
-                  'Epsilon:', 'Epsilon decrease rate', 'Learning rate:', 'Lambda']
+                  'Epsilon:', 'Epsilon decrease rate', 'Epsilon ending value', 'Epsilon noise (sigma)', 'Learning rate:', 'Lambda']
 
         options = [self.strategy, self.activation, self.nbr_neurons, self.board_size,
                    self.nbr_walls, self.nbr_games_train, self.nbr_games_compare, self.epsilon,
-                   self.eps_decrease, self.alpha, self.lambda_, self.trainAI, self.compareAI,
-                   self.playAI, self.playHuman]
+                   self.eps_decrease, self.eps_end_value, self.sigma, self.alpha, self.lambda_,
+                   self.trainAI, self.compareAI, self.playAI, self.playHuman]
 
         for i in range(len(options)):
             if i < len(labels):
@@ -200,7 +202,18 @@ class Options(QWidget):
         elif option == 'Decreasing Epsilon':
             box.valueChanged.connect(self.update_decrease_eps)
             box.setValue(parameter.eps_decrease)
+        elif option == 'Epsilon end value':
+            box.valueChanged.connect(self.update_eps_end_value)
+        elif option == 'Sigma':
+            box.valueChanged.connect(self.update_sigma)
+
         return box
+
+    def update_sigma(self, value):
+        parameter.sigma = value
+
+    def update_eps_end_value(self, value):
+        parameter.eps_end_value = value
 
     def update_decrease_eps(self, value):
         parameter.eps_decrease = value
