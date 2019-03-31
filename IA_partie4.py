@@ -2,25 +2,30 @@ import numpy as np
 import random
 from config import Parameter, parameter
 
+
 def sigmoid(x):
     """Cette fonction calcule la valeur de la fonction sigmoide (de 0 à 1) pour un nombre réel donné.
     Il est à noter que x peut également être un vecteur de type numpy array, dans ce cas, la valeur de la sigmoide correspondante à chaque réel du vecteur est calculée.
     En retour de la fonction, il peut donc y avoir un objet de type numpy.float64 ou un numpy array."""
     return 1 / (1 + np.exp(-x))
 
+
 def ReLU(x):
     return np.maximum(0, x)
+
 
 def swish(x):
     return x * sigmoid(x)
 
+
 def swish_deriv(x):
     return x * sigmoid(x) * (1 - sigmoid(x)) + sigmoid(x)
+
 
 def activation(x, derivative):
     if parameter.activation == 'Sigmoid':
         if derivative:
-            res = sigmoid(x) * (1 - sigmoid(x))
+            res = x * (1 - sigmoid(x))
         else:
             res = sigmoid(x)
     elif parameter.activation == 'ReLU':
@@ -39,6 +44,7 @@ def activation(x, derivative):
         else:
             res = swish(x)
     return res
+
 
 def initWeights(nb_rows, nb_columns):
     """Fonction destinée à initialiser les poids d'une matrice de genre (nb_rows * nb_columns) pour un réseau de neurones sur base d'une distribution normale de moyenne 0 et d'un écart-type de 0.0001."""
@@ -66,7 +72,7 @@ def forwardPass(s, NN):
     p_out = activation(P_int.dot(W_out), False)
     if parameter.sigma != 0:
         p_out += np.random.normal(0, parameter.sigma)
-    return p_out 
+    return p_out
 
 
 def backpropagation(s, NN, delta, learning_strategy=None):
@@ -88,15 +94,15 @@ def backpropagation(s, NN, delta, learning_strategy=None):
     W_out = NN[1]
     P_int = activation(np.dot(W_int, s), False)
     p_out = activation(P_int.dot(W_out), False)
+
     grad_out = activation(p_out, True)
     grad_int = activation(P_int, True)
-
     Delta_int = grad_out*W_out*grad_int
-    if learning_strategy[0] == 'Q-learning':
+    if learning_strategy[0] == 'Q-Learning':
         alpha = learning_strategy[1]
         W_int -= alpha*delta*np.outer(Delta_int, s)
         W_out -= alpha*delta*grad_out*P_int
-    elif learning_strategy[0] == 'TD-lambda':
+    elif learning_strategy[0] == 'TD-Lambda' or 'Q-Lambda':
         alpha = learning_strategy[1]
         lamb = learning_strategy[2]
         Z_int = learning_strategy[3]
@@ -146,8 +152,7 @@ def makeMove(moves, s, color, NN, eps, learning_strategy=None):
             elif val == best_value:
                 best_moves.append(m)
 
-
-    if greedy or (Q_lambda and not greedy):
+    if greedy or Q_lambda:
         # on prend un mouvement au hasard parmi les meilleurs (pires si noir)
         new_s = best_moves[random.randint(0, len(best_moves) - 1)]
         best_s = new_s
@@ -155,11 +160,9 @@ def makeMove(moves, s, color, NN, eps, learning_strategy=None):
         # on choisit un mouvement au hasard
         new_s = moves[random.randint(0, len(moves) - 1)]
         if Q_lambda:
-            if np.array_equal(new_s, best_s):
+            if not np.array_equal(new_s, best_s):
                 learning_strategy[3] *= 0
                 learning_strategy[4] *= 0
-                print("what")
-
 
     # on met à jour les poids si nécessaire
     if learning_strategy is not None:
@@ -190,9 +193,11 @@ def endGame(s, won, NN, learning_strategy):
     et sur l'eligibility trace associée (quand TD-lambda est utilisée)
     """
     Q_learning = (not learning_strategy is None) and (
-        learning_strategy[0] == 'Q-learning')
+        learning_strategy[0] == 'Q-Learning')
     TD_lambda = (not learning_strategy is None) and (
-        learning_strategy[0] == 'TD-lambda')
+        learning_strategy[0] == 'TD-Lambda')
+    Q_learning = (not learning_strategy is None) and (
+        learning_strategy[0] == 'Q-Lambda')
     # on met à jour les poids si nécessaire
     if Q_learning or TD_lambda:
         p_out_s = forwardPass(s, NN)
