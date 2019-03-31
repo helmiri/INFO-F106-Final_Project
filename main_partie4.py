@@ -492,7 +492,6 @@ def playGame(player1, player2, show = False, delay = 0.0):
                     # jeu en cours est humain contre IA, on affiche estimation probabilité de victoire pour blanc selon IA
                     p = forwardPass(board, players[i].NN)
                     super_awesome_board.probablity.setPlainText("AI's estimation : {0:.4f}".format(p))
-            time.sleep(delay)
         new_board = players[current_player].makeMove(board)
         super_awesome_board.current_player.setPlainText('*Black\n  White' if players[current_player].color == 0 else '  Black\n*White')
 
@@ -534,15 +533,22 @@ def train(NN, n_train=10000):
         learning_strategy1 = (parameter.learning_strategy, parameter.alpha)
         learning_strategy2 = (parameter.learning_strategy, parameter.alpha)
     elif parameter.learning_strategy == 'TD-Lambda' or 'Q-Lambda':
-        learning_strategy1 = (parameter.learning_strategy, parameter.alpha, parameter.lamb, np.zeros(NN[0].shape), np.zeros(NN[1].shape))
-        learning_strategy2 = (parameter.learning_strategy, parameter.alpha, parameter.lamb, np.zeros(NN[0].shape), np.zeros(NN[1].shape))
+        learning_strategy1 = [parameter.learning_strategy, parameter.alpha, parameter.lamb, np.zeros(NN[0].shape), np.zeros(NN[1].shape)]
+        learning_strategy2 = [parameter.learning_strategy, parameter.alpha, parameter.lamb, np.zeros(NN[0].shape), np.zeros(NN[1].shape)]
     agent1 = Player_AI(NN, parameter.epsilon, learning_strategy1, 'agent 1')
     agent2 = Player_AI(NN, parameter.epsilon, learning_strategy2, 'agent 2')
     # training session
-    for j in range(n_train):
-        progressBar(j, n_train)
-        QtCore.QCoreApplication.processEvents()
-        playGame(agent1, agent2)
+    print(parameter.learning_strategy)
+    for i in range(1):
+        for j in range(n_train):
+            progressBar(j, n_train)
+            QtCore.QCoreApplication.processEvents()
+            playGame(agent1, agent2)
+        # name = "BaseQL:" + str(i * 10000) + ".npz"
+        # np.savez(name, N=parameter.size, WALLS=parameter.walls, W1=parameter.NN[0], W2=parameter.NN[1])
+        # print(name)
+        # loading_bar.setValue(0)
+        
         
 
 def compare(NN1, filename, n_compare=1000, eps=0.05):
@@ -570,4 +576,5 @@ def play(player1, player2, delay=0.2):
     while not quit:
         quit = playGame(players[i], players[(i+1)%2], True, delay)
         i = (i + 1) % 2
+        parameter.epsilon -= parameter.eps_decrease
     parameter.endGame = True

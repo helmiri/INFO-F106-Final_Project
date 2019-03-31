@@ -89,7 +89,7 @@ class DropDownMenu(QComboBox):
             self.currentTextChanged.connect(self.setActivation)
 
     def setStrategy(self, text):
-        parameter.strategy = self.currentText()
+        parameter.learning_strategy = self.currentText()
     
     def setActivation(self, text):
         parameter.activation = self.currentText()
@@ -117,7 +117,6 @@ class Options(QWidget):
         self.epsilon = self.create_box('Epsilon', 'DoubleSpinBox', [0.00, 1.00], 0.05)
         self.alpha = self.create_box('Alpha', 'DoubleSpinBox', [0.00, 1.00], 0.05)
         self.lambda_ = self.create_box('Lambda', 'DoubleSpinBox', [0.00, 1.00], 0.05)
-        self.eps_decrease = self.create_box('Decreasing Epsilon', 'DoubleSpinBox', [0, 1], 0.05)
         self.eps_end_value = self.create_box('Epsilon end value', 'DoubleSpinBox', [0, 1], 0.05)
         self.sigma = self.create_box('Sigma', 'DoubleSpinBox', [0, 1], 0.01)
         
@@ -134,11 +133,11 @@ class Options(QWidget):
 
         labels = ['Strategy:', 'Activation function','Neurons', 'Board Size:', 'Number of walls:',
                   'Number of games to train the AI:', 'Number of games to compare the AI:',
-                  'Epsilon:', 'Epsilon decrease rate', 'Epsilon ending value', 'Epsilon noise (sigma)', 'Learning rate:', 'Lambda']
+                  'Epsilon:', 'Epsilon ending value', 'Epsilon noise (sigma)', 'Learning rate:', 'Lambda']
 
         options = [self.strategy, self.activation, self.nbr_neurons, self.board_size,
                    self.nbr_walls, self.nbr_games_train, self.nbr_games_compare, self.epsilon,
-                   self.eps_decrease, self.eps_end_value, self.sigma, self.alpha, self.lambda_,
+                   self.eps_end_value, self.sigma, self.alpha, self.lambda_,
                    self.trainAI, self.compareAI, self.playAI, self.playHuman]
 
         for i in range(len(options)):
@@ -146,7 +145,7 @@ class Options(QWidget):
                 self.grid.addWidget(QLabel(labels[i]), i, 0)
                 self.grid.addWidget(options[i], i, 1)
             else:
-                if i % 2 == 1:
+                if i % 2 == 0:
                     self.grid.addWidget(options[i], i, 0)
                 else:
                     self.grid.addWidget(options[i], i - 1, 1)
@@ -214,9 +213,10 @@ class Options(QWidget):
 
     def update_eps_end_value(self, value):
         parameter.eps_end_value = value
+        self.update_decrease_eps()
 
-    def update_decrease_eps(self, value):
-        parameter.eps_decrease = value
+    def update_decrease_eps(self):
+        parameter.eps_decrease = (parameter.epsilon - parameter.eps_end_value) / parameter.train
         
     def update_board_size(self, value):
         parameter.size = value
@@ -229,6 +229,7 @@ class Options(QWidget):
 
     def update_epsilon(self, value):
         parameter.epsilon = value
+        self.update_decrease_eps()
 
     def update_alpha(self, value):
         parameter.alpha = value
@@ -238,6 +239,7 @@ class Options(QWidget):
 
     def update_train(self, value):
         parameter.train = value
+        self.update_decrease_eps()
 
     def update_compare(self, value):
         parameter.compare = value

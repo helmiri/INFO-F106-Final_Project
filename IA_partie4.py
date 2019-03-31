@@ -8,6 +8,37 @@ def sigmoid(x):
     En retour de la fonction, il peut donc y avoir un objet de type numpy.float64 ou un numpy array."""
     return 1 / (1 + np.exp(-x))
 
+def ReLU(x):
+    return np.maximum(0, x)
+
+def swish(x):
+    return x * sigmoid(x)
+
+def swish_deriv(x):
+    return x * sigmoid(x) * (1 - sigmoid(x)) + sigmoid(x)
+
+def activation(x, derivative):
+    if parameter.activation == 'Sigmoid':
+        if derivative:
+            res = sigmoid(x) * (1 - sigmoid(x))
+        else:
+            res = sigmoid(x)
+    elif parameter.activation == 'ReLU':
+        if derivative:
+            if isinstance(x, np.float64):
+                res = 1 if x > 0 else 0
+            else:
+                res = np.copy(x)
+                res[res < 0] = 0
+                res[res > 0] = 1
+        else:
+            res = np.maximum(0, x)
+    else:
+        if derivative:
+            res = swish_deriv(x)
+        else:
+            res = swish(x)
+    return res
 
 def initWeights(nb_rows, nb_columns):
     """Fonction destinée à initialiser les poids d'une matrice de genre (nb_rows * nb_columns) pour un réseau de neurones sur base d'une distribution normale de moyenne 0 et d'un écart-type de 0.0001."""
@@ -29,11 +60,12 @@ def forwardPass(s, NN):
     """Cette fonction permet d'utiliser un réseau de neurones NN pour estimer la probabilité de victoire finale du joueur blanc pour un état (s) donné du jeu."""
     W_int = NN[0]
     W_out = NN[1]
-    P_int = sigmoid(np.dot(W_int, s))
-    p_out = sigmoid(P_int.dot(W_out))
+    # P_int = sigmoid(np.dot(W_int, s))
+    # p_out = sigmoid(P_int.dot(W_out))
+    P_int = activation(np.dot(W_int, s), False)
+    p_out = activation(P_int.dot(W_out), False)
     if parameter.sigma != 0:
         p_out += np.random.normal(0, parameter.sigma)
-        print(p_out)
     return p_out 
 
 
@@ -54,10 +86,11 @@ def backpropagation(s, NN, delta, learning_strategy=None):
         return None
     W_int = NN[0]
     W_out = NN[1]
-    P_int = sigmoid(np.dot(W_int, s))
-    p_out = sigmoid(P_int.dot(W_out))
-    grad_out = p_out*(1-p_out)
-    grad_int = P_int*(1-P_int)
+    P_int = activation(np.dot(W_int, s), False)
+    p_out = activation(P_int.dot(W_out), False)
+    grad_out = activation(p_out, True)
+    grad_int = activation(P_int, True)
+
     Delta_int = grad_out*W_out*grad_int
     if learning_strategy[0] == 'Q-learning':
         alpha = learning_strategy[1]
@@ -97,7 +130,7 @@ def makeMove(moves, s, color, NN, eps, learning_strategy=None):
     greedy = random.random() > eps
     # dans le cas greedy, on recherche le meilleur mouvement (état) possible. Dans le cas du Q-learning (même sans greedy), on a besoin de connaître
     # la probabilité estimée associée au meilleur mouvement (état) possible en vue de réaliser la backpropagation.
-    if greedy or Q_learning:
+    if greedy or Q_learning or Q_lambda:
         best_moves = []
         best_value = None
         c = 1
@@ -113,25 +146,20 @@ def makeMove(moves, s, color, NN, eps, learning_strategy=None):
             elif val == best_value:
                 best_moves.append(m)
 
-    if Q_lambda:
 
-        greedy_state = best_moves[random.randint(0, len(best_moves)-1)]
-        non_greedy_state = moves[random.randint(0, len(moves) - 1)]
-
-        if greedy:
-            new_s = greedy_state
-        else:
-            new_s = non_greedy_state
-            if non_greedy_state != greedy_state:
+    if greedy or (Q_lambda and not greedy):
+        # on prend un mouvement au hasard parmi les meilleurs (pires si noir)
+        new_s = best_moves[random.randint(0, len(best_moves) - 1)]
+        best_s = new_s
+    if not greedy:
+        # on choisit un mouvement au hasard
+        new_s = moves[random.randint(0, len(moves) - 1)]
+        if Q_lambda:
+            if np.array_equal(new_s, best_s):
                 learning_strategy[3] *= 0
                 learning_strategy[4] *= 0
-    else:
-        if greedy:
-            # on prend un mouvement au hasard parmi les meilleurs (pires si noir)
-            new_s = best_moves[random.randint(0, len(best_moves)-1)]
-        else:
-            # on choisit un mouvement au hasard
-            new_s = moves[random.randint(0, len(moves) - 1)]
+                print("what")
+
 
     # on met à jour les poids si nécessaire
     if learning_strategy is not None:
