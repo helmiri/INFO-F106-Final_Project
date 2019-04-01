@@ -6,7 +6,7 @@ from config import Parameter, parameter
 def sigmoid(x):
     """Cette fonction calcule la valeur de la fonction sigmoide (de 0 à 1) pour un nombre réel donné.
     Il est à noter que x peut également être un vecteur de type numpy array, dans ce cas, la valeur de la sigmoide correspondante à chaque réel du vecteur est calculée.
-    En retour de la fonction, il peut donc y avoir un objet de type numpy.float64 ou un numpy array."""
+    En retour de la fonction, il peut donc y avoir un objet de type numpy.float64 ou un numpy array. """
     return 1 / (1 + np.exp(-x))
 
 
@@ -19,7 +19,7 @@ def swish(x):
 
 
 def swish_deriv(x):
-    return x * sigmoid(x) * (1 - sigmoid(x)) + sigmoid(x)
+    return swish(x) + sigmoid(x) * (1 - swish(x))
 
 
 def activation(x, derivative):
@@ -66,8 +66,7 @@ def forwardPass(s, NN):
     """Cette fonction permet d'utiliser un réseau de neurones NN pour estimer la probabilité de victoire finale du joueur blanc pour un état (s) donné du jeu."""
     W_int = NN[0]
     W_out = NN[1]
-    # P_int = sigmoid(np.dot(W_int, s))
-    # p_out = sigmoid(P_int.dot(W_out))
+    
     P_int = activation(np.dot(W_int, s), False)
     p_out = activation(P_int.dot(W_out), False)
     if parameter.sigma != 0:
@@ -94,7 +93,6 @@ def backpropagation(s, NN, delta, learning_strategy=None):
     W_out = NN[1]
     P_int = activation(np.dot(W_int, s), False)
     p_out = activation(P_int.dot(W_out), False)
-
     grad_out = activation(p_out, True)
     grad_int = activation(P_int, True)
     Delta_int = grad_out*W_out*grad_int
@@ -102,7 +100,7 @@ def backpropagation(s, NN, delta, learning_strategy=None):
         alpha = learning_strategy[1]
         W_int -= alpha*delta*np.outer(Delta_int, s)
         W_out -= alpha*delta*grad_out*P_int
-    elif learning_strategy[0] == 'TD-Lambda' or 'Q-Lambda':
+    elif learning_strategy[0] == 'TD-Lambda' or 'Q-Lambda' or 'DQ_lambda':
         alpha = learning_strategy[1]
         lamb = learning_strategy[2]
         Z_int = learning_strategy[3]
@@ -132,11 +130,15 @@ def makeMove(moves, s, color, NN, eps, learning_strategy=None):
         learning_strategy[0] == 'TD-Lambda')
     Q_lambda = (not learning_strategy is None) and (
         learning_strategy[0] == 'Q-Lambda')
+    DQ_lambda = (not learning_strategy is None) and (
+        learning_strategy[0] == 'DQ-Lambda')
     # Epsilon greedy
-    greedy = random.random() > eps
+
+    
+    greedy = random.random() > parameter.epsilon
     # dans le cas greedy, on recherche le meilleur mouvement (état) possible. Dans le cas du Q-learning (même sans greedy), on a besoin de connaître
     # la probabilité estimée associée au meilleur mouvement (état) possible en vue de réaliser la backpropagation.
-    if greedy or Q_learning or Q_lambda:
+    if greedy or Q_learning or Q_lambda or DQ_lambda:
         best_moves = []
         best_value = None
         c = 1
@@ -152,24 +154,43 @@ def makeMove(moves, s, color, NN, eps, learning_strategy=None):
             elif val == best_value:
                 best_moves.append(m)
 
-    if greedy or Q_lambda:
+    if greedy or Q_lambda or DQ_lambda:
         # on prend un mouvement au hasard parmi les meilleurs (pires si noir)
         new_s = best_moves[random.randint(0, len(best_moves) - 1)]
         best_s = new_s
+        # if DQ_lambda and greedy:
+        #     parameter.lamb = 3.6 * sigmoid((3 * parameter.lamb) - 0.9) * (1 - sigmoid((3 * parameter.lamb) - 0.9))
+
     if not greedy:
         # on choisit un mouvement au hasard
         new_s = moves[random.randint(0, len(moves) - 1)]
-        if Q_lambda:
-            if not np.array_equal(new_s, best_s):
+        if parameter.epsilon_adaptive:
+            max_current = forwardPass(new_s, NN)
+            parameter.k += 1
+            if parameter.k == parameter.l:
+                diff = max_current - parameter.max_prev
+                if diff > 0:
+                    parameter.epsilon = sigmoid(2 * parameter.epsilon) - 0.5
+                elif diff < 0:
+                    parameter.epsilon = 0.5
+                parameter.max_prev = max_current
+                parameter.k = 0
+        
+        if Q_lambda or DQ_lambda:
+            chosen_greedy = np.array_equal(new_s, best_s)
+            if not chosen_greedy and Q_lambda:
                 learning_strategy[3] *= 0
                 learning_strategy[4] *= 0
+            elif not chosen_greedy and DQ_lambda:
+                parameter.lamb = sigmoid(2 * parameter.lamb) - 0.5
+                
 
     # on met à jour les poids si nécessaire
     if learning_strategy is not None:
         p_out_s = forwardPass(s, NN)
         if Q_learning:
             delta = p_out_s - best_value
-        elif TD_lambda or Q_lambda:
+        elif TD_lambda or Q_lambda or DQ_lambda:
             if greedy:
                 p_out_new_s = best_value
             else:
@@ -198,8 +219,10 @@ def endGame(s, won, NN, learning_strategy):
         learning_strategy[0] == 'TD-Lambda')
     Q_learning = (not learning_strategy is None) and (
         learning_strategy[0] == 'Q-Lambda')
+    DQ_lambda = (not learning_strategy is None) and (
+        learning_strategy[0] == 'DQ-Lambda')
     # on met à jour les poids si nécessaire
-    if Q_learning or TD_lambda:
+    if Q_learning or TD_lambda or DQ_lambda:
         p_out_s = forwardPass(s, NN)
         delta = p_out_s - won
         backpropagation(s, NN, delta, learning_strategy)

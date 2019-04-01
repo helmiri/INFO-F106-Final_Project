@@ -50,6 +50,12 @@ class Parameter:
         self.closed = False
         self.endGame = False
 
+        #
+        self.max_prev = 0
+        self.k = 0
+        self.l = 5
+        self.epsilon_adaptive = False
+
 
 class Board(QMainWindow):
     """

@@ -85,14 +85,19 @@ class DropDownMenu(QComboBox):
 
         if menu == 'Strategy':
             self.currentTextChanged.connect(self.setStrategy)
-        else:
+        elif menu == 'Activation':
             self.currentTextChanged.connect(self.setActivation)
+        else:
+            self.currentIndexChanged.connect(self.epsMode)
 
     def setStrategy(self, text):
         parameter.learning_strategy = self.currentText()
     
     def setActivation(self, text):
         parameter.activation = self.currentText()
+    
+    def epsMode(self, text):
+        parameter.epsilon_mode = self.currentText()
 
 
 class Options(QWidget):
@@ -106,8 +111,9 @@ class Options(QWidget):
         self.grid = QGridLayout()
 
         # Create items
-        self.strategy = DropDownMenu('Strategy', ['Q-Learning', 'Q-Lambda','TD-Lambda'])
-        self.activation = DropDownMenu('Activation', ['Sigmoid','ReLU', 'Swish'])
+        self.strategy = DropDownMenu('Strategy', ['Q-Learning', 'Q-Lambda','DQ-Lambda','TD-Lambda'])
+        self.activation = DropDownMenu('Activation', ['Sigmoid', 'ReLU', 'Swish'])
+        self.epsilon_mode = DropDownMenu('Eps mode', ['Static', 'Adaptive'])
 
         self.board_size = self.create_box('BoardSize', 'SpinBox', [3, 9], 1)
         self.nbr_walls = self.create_box('Walls', 'SpinBox', [0, 10], 1)
@@ -117,8 +123,8 @@ class Options(QWidget):
         self.epsilon = self.create_box('Epsilon', 'DoubleSpinBox', [0.00, 1.00], 0.05)
         self.alpha = self.create_box('Alpha', 'DoubleSpinBox', [0.00, 1.00], 0.05)
         self.lambda_ = self.create_box('Lambda', 'DoubleSpinBox', [0.00, 1.00], 0.05)
-        self.eps_end_value = self.create_box('Epsilon end value', 'DoubleSpinBox', [0, 1], 0.05)
         self.sigma = self.create_box('Sigma', 'DoubleSpinBox', [0, 1], 0.01)
+        
         
 
         self.trainAI = Buttons('Train', 'Train AI')
@@ -131,14 +137,14 @@ class Options(QWidget):
     def initWidgets(self):
         # Place items in a grid
 
-        labels = ['Strategy:', 'Activation function','Neurons', 'Board Size:', 'Number of walls:',
+        labels = ['Strategy:', 'Activation function:','Epsilon mode:','Neurons', 'Board Size:', 'Number of walls:',
                   'Number of games to train the AI:', 'Number of games to compare the AI:',
-                  'Epsilon:', 'Epsilon ending value', 'Epsilon noise (sigma)', 'Learning rate:', 'Lambda']
+                  'Epsilon:', 'Epsilon noise (sigma)', 'Learning rate:', 'Lambda']
 
-        options = [self.strategy, self.activation, self.nbr_neurons, self.board_size,
+        options = [self.strategy, self.activation, self.epsilon_mode, self.nbr_neurons, self.board_size,
                    self.nbr_walls, self.nbr_games_train, self.nbr_games_compare, self.epsilon,
-                   self.eps_end_value, self.sigma, self.alpha, self.lambda_,
-                   self.trainAI, self.compareAI, self.playAI, self.playHuman]
+                   self.sigma, self.alpha, self.lambda_, self.trainAI, self.compareAI, self.playAI,
+                   self.playHuman]
 
         for i in range(len(options)):
             if i < len(labels):

@@ -485,6 +485,7 @@ def playGame(player1, player2, show = False, delay = 0.0):
     count = 0
     quit = False
     while not finished:
+        QtCore.QCoreApplication.processEvents()
         if show:
             msg = ''
             for i in range(2):
@@ -532,22 +533,26 @@ def train(NN, n_train=10000):
     if parameter.learning_strategy == 'Q-Learning':
         learning_strategy1 = (parameter.learning_strategy, parameter.alpha)
         learning_strategy2 = (parameter.learning_strategy, parameter.alpha)
-    elif parameter.learning_strategy == 'TD-Lambda' or 'Q-Lambda':
+    elif parameter.learning_strategy == 'TD-Lambda' or 'Q-Lambda' or 'DQ_lambda':
         learning_strategy1 = [parameter.learning_strategy, parameter.alpha, parameter.lamb, np.zeros(NN[0].shape), np.zeros(NN[1].shape)]
         learning_strategy2 = [parameter.learning_strategy, parameter.alpha, parameter.lamb, np.zeros(NN[0].shape), np.zeros(NN[1].shape)]
     agent1 = Player_AI(NN, parameter.epsilon, learning_strategy1, 'agent 1')
     agent2 = Player_AI(NN, parameter.epsilon, learning_strategy2, 'agent 2')
     # training session
-    print(parameter.learning_strategy)
-    for i in range(1):
+    base_epsilon = parameter.epsilon
+    base_lambda = parameter.lamb
+    for i in range(30):
         for j in range(n_train):
             progressBar(j, n_train)
             QtCore.QCoreApplication.processEvents()
             playGame(agent1, agent2)
-        # name = "BaseQL:" + str(i * 10000) + ".npz"
-        # np.savez(name, N=parameter.size, WALLS=parameter.walls, W1=parameter.NN[0], W2=parameter.NN[1])
-        # print(name)
-        # loading_bar.setValue(0)
+            parameter.current_train = j
+            parameter.epsilon = base_epsilon
+            parameter.lamb = base_lambda
+        name = "BaseDQL:" + str((i + 1) * 10000) + ".npz"
+        np.savez(name, N=parameter.size, WALLS=parameter.walls, W1=parameter.NN[0], W2=parameter.NN[1])
+        print(name)
+        loading_bar.setValue(0)
         
         
 
@@ -576,5 +581,4 @@ def play(player1, player2, delay=0.2):
     while not quit:
         quit = playGame(players[i], players[(i+1)%2], True, delay)
         i = (i + 1) % 2
-        parameter.epsilon -= parameter.eps_decrease
     parameter.endGame = True
