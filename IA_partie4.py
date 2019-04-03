@@ -100,7 +100,7 @@ def backpropagation(s, NN, delta, learning_strategy=None):
         alpha = learning_strategy[1]
         W_int -= alpha*delta*np.outer(Delta_int, s)
         W_out -= alpha*delta*grad_out*P_int
-    elif learning_strategy[0] == 'TD-Lambda' or 'Q-Lambda' or 'DQ_lambda':
+    elif learning_strategy[0] == 'TD-Lambda' or 'Q-Lambda' or 'DQ-Lambda':
         alpha = learning_strategy[1]
         lamb = learning_strategy[2]
         Z_int = learning_strategy[3]
@@ -158,8 +158,8 @@ def makeMove(moves, s, color, NN, eps, learning_strategy=None):
         # on prend un mouvement au hasard parmi les meilleurs (pires si noir)
         new_s = best_moves[random.randint(0, len(best_moves) - 1)]
         best_s = new_s
-        # if DQ_lambda and greedy:
-        #     parameter.lamb = 3.6 * sigmoid((3 * parameter.lamb) - 0.9) * (1 - sigmoid((3 * parameter.lamb) - 0.9))
+        if DQ_lambda and greedy:
+            parameter.lamb = 3.6 * sigmoid((3 * parameter.lamb) - 0.9) * (1 - sigmoid((3 * parameter.lamb) - 0.9))
 
     if not greedy:
         # on choisit un mouvement au hasard
@@ -179,8 +179,8 @@ def makeMove(moves, s, color, NN, eps, learning_strategy=None):
         if Q_lambda or DQ_lambda:
             chosen_greedy = np.array_equal(new_s, best_s)
             if not chosen_greedy and Q_lambda:
-                learning_strategy[3] *= 0
-                learning_strategy[4] *= 0
+                learning_strategy[3].fill(0)
+                learning_strategy[4].fill(0)
             elif not chosen_greedy and DQ_lambda:
                 parameter.lamb = sigmoid(2 * parameter.lamb) - 0.5
                 
@@ -213,20 +213,19 @@ def endGame(s, won, NN, learning_strategy):
     Donc, cette fonction ne retourne rien (None) mais elle peut avoir un impact sur les valeurs des poids de NN
     et sur l'eligibility trace associée (quand TD-lambda est utilisée)
     """
-    Q_learning = (not learning_strategy is None) and (
-        learning_strategy[0] == 'Q-Learning')
+
     TD_lambda = (not learning_strategy is None) and (
         learning_strategy[0] == 'TD-Lambda')
-    Q_learning = (not learning_strategy is None) and (
+    Q_lambda = (not learning_strategy is None) and (
         learning_strategy[0] == 'Q-Lambda')
     DQ_lambda = (not learning_strategy is None) and (
         learning_strategy[0] == 'DQ-Lambda')
     # on met à jour les poids si nécessaire
-    if Q_learning or TD_lambda or DQ_lambda:
+    if learning_strategy is not None:
         p_out_s = forwardPass(s, NN)
         delta = p_out_s - won
         backpropagation(s, NN, delta, learning_strategy)
-        if TD_lambda:
+        if learning_strategy[0] != 'Q-Learning':
             # on remet les eligibility traces à 0 en prévision de la partie suivante
             learning_strategy[3].fill(0)  # remet Z_int à 0
             learning_strategy[4].fill(0)  # remet Z_out à 0
