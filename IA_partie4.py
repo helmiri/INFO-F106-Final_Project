@@ -147,12 +147,14 @@ def makeMove(moves, s, color, NN, eps, learning_strategy=None):
 
             if parameter.sigma != 0 and learning_strategy is not None:
                 # If epsilon with noise is applied, apply the noise on val
-                # before choosing a move. The original value of val before the noise is remembered
-                # for later use otherwise it will mess up the neural network
+                # before choosing a move. The original value of val is hidden from e-greedy
+                # but is applied when updating the neural network
                 val += np.random.normal(0, parameter.sigma)
-            if best_value is None or c * val > c * best_value:
+
+            if best_value is None or c * val > c * compare_value:
                 best_moves = [m]
-                best_value = val if parameter.sigma == 0 else x
+                compare_value = val
+                best_value = x
             elif val == best_value:
                 best_moves.append(m)
     

@@ -425,9 +425,11 @@ def makeMove(moves, s, color, NN, eps, learning_strategy=None):
             # before choosing a move. The original value of val before the noise is remembered
             # for later use otherwise it will mess up the neural network
             val += np.random.normal(0, parameter.sigma)
-        if best_value is None or c * val > c * best_value:
+
+        if best_value is None or c * val > c * compare_value:
             best_moves = [m]
-            best_value = val if parameter.sigma == 0 else x
+            compare_value = val
+            best_value = x
         elif val == best_value:
             best_moves.append(m)
     
