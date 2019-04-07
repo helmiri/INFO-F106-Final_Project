@@ -533,26 +533,23 @@ def train(NN, n_train=10000):
     if parameter.learning_strategy == 'Q-Learning':
         learning_strategy1 = (parameter.learning_strategy, parameter.alpha)
         learning_strategy2 = (parameter.learning_strategy, parameter.alpha)
-    elif parameter.learning_strategy == 'TD-Lambda' or 'Q-Lambda' or 'DQ_lambda':
+    elif parameter.learning_strategy == 'TD-Lambda' or 'Q-Lambda' or 'DQ-Lambda':
         learning_strategy1 = [parameter.learning_strategy, parameter.alpha, parameter.lamb, np.zeros(NN[0].shape), np.zeros(NN[1].shape)]
         learning_strategy2 = [parameter.learning_strategy, parameter.alpha, parameter.lamb, np.zeros(NN[0].shape), np.zeros(NN[1].shape)]
-    agent1 = Player_AI(NN, parameter.epsilon, learning_strategy1, 'agent 1')
-    agent2 = Player_AI(NN, parameter.epsilon, learning_strategy2, 'agent 2')
-    # training session
     base_epsilon = parameter.epsilon
     base_lambda = parameter.lamb
-    for i in range(30):
-        for j in range(n_train):
-            progressBar(j, n_train)
-            QtCore.QCoreApplication.processEvents()
-            playGame(agent1, agent2)
-            parameter.current_train = j
-            parameter.epsilon = base_epsilon
-            parameter.lamb = base_lambda
-        name = "BaseDQL:" + str((i + 1) * 10000) + ".npz"
-        np.savez(name, N=parameter.size, WALLS=parameter.walls, W1=parameter.NN[0], W2=parameter.NN[1])
-        print(name)
-        loading_bar.setValue(0)
+    agent1 = Player_AI(NN, base_epsilon, learning_strategy1, 'agent 1')
+    agent2 = Player_AI(NN, base_epsilon, learning_strategy2, 'agent 2')
+    # training session
+    for j in range(n_train):
+        progressBar(j, n_train)
+        QtCore.QCoreApplication.processEvents()
+        playGame(agent1, agent2)
+        # Restore their original values at the start of each game
+        # in case they have been modified
+        parameter.epsilon = base_epsilon
+        parameter.lamb = base_lambda
+        parameter.k = 0
         
         
 
@@ -561,7 +558,6 @@ def compare(NN1, filename, n_compare=1000, eps=0.05):
     data = np.load(filename)
     NN2 = (data['W1'], data['W2'])
     agent2 = Player_AI(NN2, eps, None, 'agent 2')
-    print('\nTournoi IA vs ' + filename + ' ('+str(n_compare)+' parties, eps=' + str(eps) + ')' )
     players = [agent1, agent2]
     i = 0
     for j in range(n_compare):

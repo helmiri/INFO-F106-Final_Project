@@ -90,14 +90,15 @@ class DropDownMenu(QComboBox):
         else:
             self.currentIndexChanged.connect(self.epsMode)
 
-    def setStrategy(self, text):
+    def setStrategy(self):
         parameter.learning_strategy = self.currentText()
     
-    def setActivation(self, text):
+    def setActivation(self):
         parameter.activation = self.currentText()
     
-    def epsMode(self, text):
-        parameter.epsilon_mode = self.currentText()
+    def epsMode(self):
+        mode = self.currentText() == 'Adaptive'
+        parameter.epsilon_adaptive = mode
 
 
 class Options(QWidget):
@@ -124,8 +125,6 @@ class Options(QWidget):
         self.alpha = self.create_box('Alpha', 'DoubleSpinBox', [0.00, 1.00], 0.05)
         self.lambda_ = self.create_box('Lambda', 'DoubleSpinBox', [0.00, 1.00], 0.05)
         self.sigma = self.create_box('Sigma', 'DoubleSpinBox', [0, 1], 0.01)
-        
-        
 
         self.trainAI = Buttons('Train', 'Train AI')
         self.compareAI = Buttons('Compare', 'Compare AI')
@@ -204,26 +203,15 @@ class Options(QWidget):
         elif option == 'Compare':
             box.valueChanged.connect(self.update_compare)
             box.setValue(parameter.compare)
-        elif option == 'Decreasing Epsilon':
-            box.valueChanged.connect(self.update_decrease_eps)
-            box.setValue(parameter.eps_decrease)
-        elif option == 'Epsilon end value':
-            box.valueChanged.connect(self.update_eps_end_value)
         elif option == 'Sigma':
             box.valueChanged.connect(self.update_sigma)
+            box.setValue(parameter.sigma)
 
         return box
 
     def update_sigma(self, value):
         parameter.sigma = value
-
-    def update_eps_end_value(self, value):
-        parameter.eps_end_value = value
-        self.update_decrease_eps()
-
-    def update_decrease_eps(self):
-        parameter.eps_decrease = (parameter.epsilon - parameter.eps_end_value) / parameter.train
-        
+                
     def update_board_size(self, value):
         parameter.size = value
 
@@ -235,7 +223,6 @@ class Options(QWidget):
 
     def update_epsilon(self, value):
         parameter.epsilon = value
-        self.update_decrease_eps()
 
     def update_alpha(self, value):
         parameter.alpha = value
@@ -245,7 +232,6 @@ class Options(QWidget):
 
     def update_train(self, value):
         parameter.train = value
-        self.update_decrease_eps()
 
     def update_compare(self, value):
         parameter.compare = value

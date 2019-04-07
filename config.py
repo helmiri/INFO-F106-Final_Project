@@ -1,11 +1,11 @@
 '''
     File name: config.py
-    Author: El Miri Hamza
+    Author: EL MIRI Hamza
     ID: 000479603
     Date: 07/04/2019
 
     Function:
-        - Contains variables shared across partie3.py and main_partie2.py
+        - Contains variables shared across partie4.py, main_partie4.py and IA_partie4.py
         - Creates a UI for the board
 '''
 
@@ -22,22 +22,20 @@ class Parameter:
     def __init__(self):
         # AI
         self.size = 5
-        self.walls = 1
+        self.walls = 3
         self.epsilon = 0.3
-        self.alpha = 0.4
+        self.alpha = 0.3
         self.lamb = 0.9
         self.learning_strategy = 'Q-Learning'
         self.g = None
         self.g_init = None
         self.neurons = 40
         self.activation = "Sigmoid"
-        self.eps_decrease = 0
-        self.eps_end_value = 0
-        self.sigma = 0
+        self.sigma = 0.1
 
         # Game
-        self.train = 10000
-        self.compare = 10000
+        self.train = 1000
+        self.compare = 1000
         self.NN = None
         self.board = None
 
@@ -50,11 +48,12 @@ class Parameter:
         self.closed = False
         self.endGame = False
 
-        #
+        # Part4 related
         self.max_prev = 0
         self.k = 0
-        self.l = 5
+        self.exploration_limit = 5
         self.epsilon_adaptive = False
+        self.max_value = 0
 
 
 class Board(QMainWindow):
@@ -64,7 +63,7 @@ class Board(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Make AI Great Again")
+        self.setWindowTitle("Quoridor")
         self.scene = QGraphicsScene()
         self.view = QGraphicsView(self.scene)
         self.setCentralWidget(self.view)
@@ -121,7 +120,7 @@ class Board(QMainWindow):
         # Board messages
         self.current_player.setPos(parameter.size * 100 + 25, 250)
         self.message.setPos(parameter.size * 100 + 25, 300)
-        self.probablity.setPos(parameter.size * 100 + 25, 375)
+        self.probablity.setPos(parameter.size * 100 + 25, 450)
 
         self.scene.addItem(self.player1)
         self.scene.addItem(self.player2)
