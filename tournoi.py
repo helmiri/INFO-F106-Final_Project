@@ -59,7 +59,7 @@ def listEncoding(board):
 def eachPlayerHasPath(board):
     # heuristic when at most one wall
     nb_walls = board[2*parameter.size**2:2*parameter.size**2 + 2*(parameter.size-1)**2].sum()
-    if nb_walls <= 2:
+    if nb_walls <= 1:
         # there is always a path when there is at most one wall
         return True
     # checks whether the two players can each go to the opposite side
@@ -348,6 +348,7 @@ def train(NN, n_train=10000):
         parameter.epsilon = base_epsilon
         parameter.lamb = base_lambda
         parameter.k = 0
+        print(j)
 
 
 def play(player1, player2, delay=0.2):
@@ -502,14 +503,13 @@ class Parameter:
         self.g = None
         self.g_init = None
         self.neurons = 40
-        self.sigma = 0.01
+        self.sigma = 0.001
         self.NN = None
 
         # Part4 related
         self.max_prev = 0
         self.k = 0
         self.exploration_limit = 5
-        self.epsilon_adaptive = True
         self.max_value = 0
 
 
