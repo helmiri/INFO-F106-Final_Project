@@ -1,3 +1,15 @@
+"""
+    File name: IA_partie4.py
+    Author   : EL MIRI Hamza
+               Based on the work of Gwenaël Joret and Arnaud Pollaris
+    ID       : 000479603
+    Date     : 07/04/2019
+
+    Changes  :
+        - Implemented non-working versions of ReLU and SWISH
+        - Slighltly modified makeMove, backpropagation  and endGame
+          to accomodate the new learning strategies
+"""
 import numpy as np
 import random
 from config import Parameter, parameter
@@ -35,6 +47,8 @@ def activation(x, derivative):
     DISCLAIMER: SWISH and ReLU don't work:
         - With SWISH: Training is ok at the beginning but then an OverFlow error occurs setting the probabilities to NAN
         - With ReLU : Same as SWISH but the probabilities are set to 0
+
+    Leaving them for transparency
     """
 
     if parameter.activation == 'Sigmoid':
@@ -199,7 +213,6 @@ def endGame(s, won, NN, learning_strategy):
     TD_lambda = (not learning_strategy is None) and (learning_strategy[0] == 'TD-Lambda')
     Q_lambda = (not learning_strategy is None) and (learning_strategy[0] == 'Q-Lambda')
     DQ_lambda = (not learning_strategy is None) and (learning_strategy[0] == 'DQ-Lambda')
-    # on met à jour les poids si nécessaire
     if learning_strategy is not None:
         p_out_s = forwardPass(s, NN)
         delta = p_out_s - won

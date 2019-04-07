@@ -1,8 +1,8 @@
 '''
     File name: partie4.py
-    Author: El Miri Hamza
-    ID: 000479603
-    Date: 07/04/2019
+    Author   : EL MIRI Hamza
+    ID       : 000479603
+    Date     : 07/04/2019
 
     Function:
         UI for main_partie4.py
@@ -112,8 +112,12 @@ class Options(QWidget):
         self.grid = QGridLayout()
 
         # Create items
-        self.strategy = DropDownMenu('Strategy', ['Q-Learning', 'Q-Lambda','DQ-Lambda','TD-Lambda'])
-        self.activation = DropDownMenu('Activation', ['Sigmoid', 'ReLU', 'Swish'])
+        self.strategy = DropDownMenu('Strategy', ['Q-Learning', 'Q-Lambda', 'DQ-Lambda', 'TD-Lambda'])
+        # Not Swish and ReLU don't work properly, so I'm removing the options from the UI, plus,
+        # They're not the focus of my project
+
+        # self.activation = DropDownMenu('Activation', ['Sigmoid', 'ReLU', 'Swish'])
+
         self.epsilon_mode = DropDownMenu('Eps mode', ['Static', 'Adaptive'])
 
         self.board_size = self.create_box('BoardSize', 'SpinBox', [3, 9], 1)
@@ -136,11 +140,11 @@ class Options(QWidget):
     def initWidgets(self):
         # Place items in a grid
 
-        labels = ['Strategy:', 'Activation function:','Epsilon mode:','Neurons', 'Board Size:', 'Number of walls:',
+        labels = ['Strategy:','Epsilon mode:','Neurons', 'Board Size:', 'Number of walls:',
                   'Number of games to train the AI:', 'Number of games to compare the AI:',
                   'Epsilon:', 'Epsilon noise (sigma)', 'Learning rate:', 'Lambda']
 
-        options = [self.strategy, self.activation, self.epsilon_mode, self.nbr_neurons, self.board_size,
+        options = [self.strategy, self.epsilon_mode, self.nbr_neurons, self.board_size,
                    self.nbr_walls, self.nbr_games_train, self.nbr_games_compare, self.epsilon,
                    self.sigma, self.alpha, self.lambda_, self.trainAI, self.compareAI, self.playAI,
                    self.playHuman]
@@ -150,7 +154,7 @@ class Options(QWidget):
                 self.grid.addWidget(QLabel(labels[i]), i, 0)
                 self.grid.addWidget(options[i], i, 1)
             else:
-                if i % 2 == 0:
+                if i % 2 == 1:
                     self.grid.addWidget(options[i], i, 0)
                 else:
                     self.grid.addWidget(options[i], i - 1, 1)

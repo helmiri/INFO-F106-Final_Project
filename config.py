@@ -1,8 +1,8 @@
 '''
     File name: config.py
-    Author: EL MIRI Hamza
-    ID: 000479603
-    Date: 07/04/2019
+    Author   : EL MIRI Hamza
+    ID       : 000479603
+    Date     : 07/04/2019
 
     Function:
         - Contains variables shared across partie4.py, main_partie4.py and IA_partie4.py
@@ -31,7 +31,7 @@ class Parameter:
         self.g_init = None
         self.neurons = 40
         self.activation = "Sigmoid"
-        self.sigma = 0.1
+        self.sigma = 0
 
         # Game
         self.train = 1000

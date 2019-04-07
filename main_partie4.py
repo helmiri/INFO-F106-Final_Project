@@ -1,6 +1,9 @@
 
 '''
     File name: main_partie4.py
+    Author   : EL MIRI Hamza
+               Based on the work of Gwenaël Joret and Arnaud Pollaris
+    ID       : 000479603
     Date: 07/04/2019
 
     Modifications:
