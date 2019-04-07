@@ -6,6 +6,12 @@
 
     Function:
         UI for main_partie4.py
+    
+    Part4 additions:
+        - Options class:
+            - Added Epsilon with noise
+            - Added Q-Lambda and DQ-Lambda
+            - Added Adaptive epsilon-greedy
 '''
 
 import sys
@@ -85,7 +91,9 @@ class DropDownMenu(QComboBox):
 
         if menu == 'Strategy':
             self.currentTextChanged.connect(self.setStrategy)
-        elif menu == 'Activation':
+        # DropDown menu to select activation function that I removed from UI
+        # because it doesn't work
+        elif menu == 'Activation': 
             self.currentTextChanged.connect(self.setActivation)
         else:
             self.currentIndexChanged.connect(self.epsMode)

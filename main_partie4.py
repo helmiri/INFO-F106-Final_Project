@@ -255,7 +255,7 @@ def display(board, msg=None):
 def eachPlayerHasPath(board):
     # heuristic when at most one wall
     nb_walls = board[2*parameter.size**2:2*parameter.size**2 + 2*(parameter.size-1)**2].sum()
-    if nb_walls <= 2:
+    if nb_walls <= 1:
         # there is always a path when there is at most one wall
         return True
     # checks whether the two players can each go to the opposite side

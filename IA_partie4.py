@@ -5,10 +5,35 @@
     ID       : 000479603
     Date     : 07/04/2019
 
-    Changes  :
-        - Implemented non-working versions of ReLU and SWISH
+    Changes:
+        - Implemented (non-working) ReLU and SWISH
+        - Implemented Q-Lambda and DQ-Lambda
         - Slighltly modified makeMove, backpropagation  and endGame
           to accomodate the new learning strategies
+        - Implemented Adaptive Epsilon
+
+    DQ-Lambda (Dynamic Q-Lambda):
+        A learning strategy I came up with based on Watkins' Q-Lambda.
+        Instead of resetting the eligibility traces to 0 whenever e-greedy makes
+        a non-greedy move, lambda is decreased following F(x) = sigmoid(2 * x) - 0.5
+        The function choice is a bit arbitrary since I don't have the knoweledge,
+        the mathematical backgroud nor the time to experiment with different ones
+        (it is based on Adaptive e-greedy).
+        But, the idea is to decrease lambda in a non linear manner until reaching 0
+        which happens when the AI makes a lot of sub-optimal moves significantly 
+        decreasing its chance of winning.
+
+        The philosophy behind it is that even though the AI might have made a sub-optimal choice, 
+        there's a possibility it might accidentally discover a winning strategy from its new state
+        since during training, the AI can't accurately predict the winning probability.
+
+        Lambda is then reset to its original value when the AI makes a greedy move that increases its
+        winning chance compared to the previous state, which would mean that we're on the right path
+        to victory so it would be nice if the we could give some credit to the moves that lead to that
+        state when updating the neural network, even if just a little.
+
+    Adaptive Epsilon-Greedy:
+        See: https://www.sciencedirect.com/science/article/pii/S1877050917311134
 """
 import numpy as np
 import random
